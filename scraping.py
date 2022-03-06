@@ -1,4 +1,5 @@
 # Import Splinter, BeautifulSoup, and Pandas
+from email.mime import image
 from splinter import Browser
 from bs4 import BeautifulSoup as soup
 import pandas as pd
@@ -19,7 +20,8 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
-        "last_modified": dt.datetime.now()
+        "last_modified": dt.datetime.now(),
+        "hemisphere": hemisphere(browser),
     }
 
     # Stop webdriver and return data
@@ -87,13 +89,35 @@ def mars_facts():
 
     except BaseException:
         return None
-
     # Assign columns and set index of dataframe
     df.columns=['Description', 'Mars', 'Earth']
     df.set_index('Description', inplace=True)
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+# 3. Write code to retrieve the image urls and titles for each hemisphere.
+
+def hemisphere(browser):
+    url = 'https://marshemispheres.com/'
+    browser.visit(url)
+    hemisphere_image_urls = []
+    links = browser.find_by_css('a.product-item img')
+    for i in range(len(links)):
+        hemisphere = {}
+        browser.find_by_css('a.product-item img')[i].click()
+        sample_elem = browser.links.find_by_text('Sample').first
+        hemisphere['img_url'] = sample_elem['href']
+        hemisphere['title'] = browser.find_by_css('h2.title').text
+        hemisphere_image_urls.append(hemisphere)
+
+        browser.back()
+    
+    
+
+    return hemisphere_image_urls
+  
+
 
 if __name__ == "__main__":
 
